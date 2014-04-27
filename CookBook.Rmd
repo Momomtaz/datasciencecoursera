@@ -1,0 +1,56 @@
+CodeBook.md
+========================================================
+
+First, we load in the Features & the activity Labels and create vectors of each
+```{r}
+Features <- read.table(file="./UCI HAR Dataset/features.txt")
+Features <- Features$V2
+Activity_labels <- read.table(file="./UCI HAR Dataset/activity_labels.txt")
+Activity_labels <- Activity_labels$V2
+```
+
+Now, we read in the Test Data. We add a new variable to distinguish between the individual subjects & a second new variable labelling the performed activity
+```{r}
+Test <- read.table(file="./UCI HAR Dataset/test/X_test.txt", col.names=Features, row.names=NULL)
+Subject_Test <- read.table(file="./UCI HAR Dataset/test/subject_test.txt")
+Test$Subject <- Subject_Test$V1
+Activity_Labels_test <- read.table(file="./UCI HAR Dataset/test/y_test.txt")
+Test$Activity <- factor(Activity_Labels_test$V1, levels=1:6,labels= Activity_labels)
+```
+
+
+Here, we prform the same steps as before but this time on the training data
+```{r}
+Train <- read.table(file="./UCI HAR Dataset/train/X_train.txt", col.names=Features, row.names=NULL)
+Subject_Train <- read.table(file="./UCI HAR Dataset/train/subject_train.txt")
+Train$Subject <- Subject_Train$V1
+Activity_Labels_Train <- read.table(file="./UCI HAR Dataset/train/y_train.txt")
+Train$Activity <- factor(Activity_Labels_Train$V1, levels=1:6,labels= Activity_labels)
+```
+
+This code merges the test with the traind data
+```{r}
+Data <- rbind(Train, Test)
+```
+
+Now, we extract the variables regarding means & standard deviations
+```{r}
+toMatch <- c("mean()", "std()")
+matches <- grep(paste(toMatch,collapse="|"), Features, value=F)
+```
+
+The merged data frame is ready now. Let'save it!
+```{r}
+write.table(x=Data, file='./Tidy Data.csv', sep=",", row.names=F)
+```
+
+Now, we create a second dataframe with the Mean & Standard Deviation of all variables & save it as well
+```{r}
+Means <- colMeans(Data[,1:(ncol(Data) - 2) ])
+Standard.Deviation <- apply( Data[,1:(ncol(Data) - 2) ], 2, sd )
+
+    ## New Dataframe with Means & Standard Deviations
+DF <- data.frame(Means, stringsAsFactors=F)
+DF <- cbind(DF, Standard.Deviation)
+write.table(x=DF, file='./Means-SD Data.csv', sep=",", row.names=F)
+```
